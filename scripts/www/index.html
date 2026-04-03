@@ -1,11 +1,823 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>PakePlus</title>
-    </head>
-    <body>
-        PakePlus
-    </body>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>🎨 立体课程表 | 课程签到 | 导出图片</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+            font-family: 'Segoe UI', 'Poppins', 'Roboto', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            padding: 24px 16px;
+            min-height: 100vh;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 50%, rgba(102,126,234,0.15) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .app-container {
+            max-width: 1600px;
+            width: 100%;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 2rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255,255,255,0.2), inset 0 1px 0 rgba(255,255,255,0.8);
+            overflow: hidden;
+            padding: 1.5rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 3px solid transparent;
+            background: linear-gradient(135deg, #667eea, #764ba2) bottom no-repeat;
+            background-size: 100% 3px;
+        }
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea, #764ba2, #f093fb);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+        .copyright {
+            font-size: 0.7rem;
+            color: #94a3b8;
+            margin-top: 8px;
+        }
+        .subtitle {
+            color: #64748b;
+            font-size: 0.7rem;
+            margin-top: 0.2rem;
+        }
+
+        .control-panel {
+            background: linear-gradient(115deg, #f8fafc, #f1f5f9);
+            border-radius: 1.5rem;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1.8rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            border: 1px solid rgba(102,126,234,0.3);
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 8px 18px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.75rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+        .btn-danger { background: linear-gradient(135deg, #f56565, #e53e3e); color: white; }
+        .btn-success { background: linear-gradient(135deg, #48bb78, #38a169); color: white; }
+        .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+        .btn-warning { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
+
+        .three-sections {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+        .section-card {
+            background: white;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            box-shadow: 0 15px 35px -10px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+        .section-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 40px -12px rgba(0,0,0,0.3);
+        }
+        .section-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 12px 20px;
+            color: white;
+            font-weight: 800;
+            font-size: 1.1rem;
+            text-align: center;
+            justify-content: center;
+        }
+        .weekday-header { background: linear-gradient(135deg, #3b82f6, #6366f1); text-align: center; }
+        .saturday-header { background: linear-gradient(135deg, #f59e0b, #f97316); text-align: center; }
+        .sunday-header { background: linear-gradient(135deg, #ef4444, #ec489a); text-align: center; }
+
+        .workday-inner {
+            overflow-x: auto;
+            padding: 0;
+        }
+        .schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.75rem;
+            table-layout: auto;
+            border: 2px solid #e2e8f0;
+            min-width: 600px;
+        }
+        .schedule-table th {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            padding: 12px 8px;
+            font-weight: 700;
+            text-align: center;
+            border: 1px solid #cbd5e1;
+            color: #334155;
+        }
+        .schedule-table td {
+            border: 1px solid #cbd5e1;
+            padding: 10px 6px;
+            vertical-align: middle;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        .schedule-table tr:hover td:not(.time-col) {
+            background: linear-gradient(145deg, #fef9e6, #fff4e0);
+        }
+        .time-col {
+            background: linear-gradient(135deg, #fef9f0, #fff5e6);
+            font-weight: 700;
+            color: #b45309;
+            width: 105px;
+            cursor: pointer;
+        }
+        .time-col:hover { background: #fffbeb; }
+        .period-label-text { font-weight: 800; font-size: 0.8rem; display: block; }
+        .period-time-text { font-size: 0.65rem; color: #b45309; display: block; margin-top: 2px; }
+
+        .course-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        .course-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 25px;
+            font-weight: 700;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 6px rgba(102,126,234,0.4);
+            display: inline-block;
+        }
+        .course-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(102,126,234,0.6);
+        }
+        .course-class-line { 
+            font-size: 0.6rem; 
+            color: #5a67d8; 
+            background: #eef2ff; 
+            padding: 2px 8px; 
+            border-radius: 16px;
+            display: inline-block;
+        }
+
+        .stats-column {
+            background: #fef9f0;
+            vertical-align: top;
+            text-align: left;
+            padding: 10px !important;
+            min-width: 260px;
+            max-width: 320px;
+            border: 1px solid #cbd5e1;
+        }
+        .stats-list {
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 0.7rem;
+            line-height: 1.45;
+        }
+        .stats-item {
+            padding: 6px 8px;
+            border-bottom: 1px solid #e2e8f0;
+            background: white;
+            margin-bottom: 4px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .stats-item:hover {
+            background: #eef2ff;
+            transform: translateX(3px);
+        }
+        .clear-stats-btn {
+            background: #f56565;
+            color: white;
+            border: none;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.6rem;
+            cursor: pointer;
+            margin-top: 8px;
+            width: 100%;
+        }
+        .export-hide .clear-stats-btn {
+            display: none;
+        }
+
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px);
+            align-items: center; justify-content: center; z-index: 1000;
+        }
+        .modal-content {
+            background: white; border-radius: 1.5rem; width: 90%; max-width: 450px;
+            padding: 1.5rem; animation: popIn 0.3s ease;
+        }
+        @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.85rem; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 12px; }
+        .modal-buttons { display: flex; justify-content: flex-end; gap: 10px; margin-top: 1.2rem; }
+        .add-period-btn {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-right: auto;
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 12px 8px; }
+            .app-container { padding: 1rem; }
+            .stats-column { min-width: 200px; }
+            .schedule-table { font-size: 0.7rem; }
+            .course-btn { font-size: 0.65rem; padding: 4px 8px; }
+            .period-label-text { font-size: 0.7rem; }
+            .section-header { font-size: 0.95rem; }
+        }
+        @media (max-width: 480px) {
+            .btn { padding: 6px 12px; font-size: 0.65rem; }
+            .stats-column { min-width: 170px; }
+            .time-col { width: 85px; }
+        }
+        .workday-inner {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .three-sections {
+            gap: 1.5rem;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+</head>
+<body>
+<div class="app-container">
+    <div class="header">
+        <h1>🎨 课程表</h1>
+        <div class="copyright">© 2026 课程表系统 by 朱明亮 | 点击课程名称签到 | 双击统计记录可修改</div>
+        <div class="subtitle">周一~周五 | 周六 | 周日 | 独立课时 | 立体质感</div>
+    </div>
+
+    <div class="control-panel">
+        <div class="btn-group">
+            <button class="btn btn-danger" id="clearAllCoursesBtn">🗑️ 清空所有课程</button>
+            <button class="btn btn-success" id="exportExcelBtn">📎 导出Excel(周六日)</button>
+            <button class="btn btn-success" id="exportImageBtn">🖼️ 导出图片</button>
+            <button class="btn btn-primary" id="clearAllStatsBtn">📊 清空所有统计</button>
+            <button class="btn btn-warning" id="resetAllDataBtn">🔄 重置所有数据</button>
+        </div>
+        
+    </div>
+
+    <div class="three-sections" id="captureArea">
+        <div class="section-card">
+            <div class="section-header weekday-header">📚 周一 ~ 周五</div>
+            <div class="workday-inner">
+                <table class="schedule-table" id="workdayTable">
+                    <thead id="workdayHeader"></thead>
+                    <tbody id="workdayBody"></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="section-card">
+            <div class="section-header saturday-header">🌟 星期六</div>
+            <div class="workday-inner">
+                <table class="schedule-table" id="saturdayTable">
+                    <thead id="saturdayHeader"></thead>
+                    <tbody id="saturdayBody"></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="section-card">
+            <div class="section-header sunday-header">💖 星期日</div>
+            <div class="workday-inner">
+                <table class="schedule-table" id="sundayTable">
+                    <thead id="sundayHeader"></thead>
+                    <tbody id="sundayBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 课程编辑模态框：只保留课程名称和班级，去除星期和课时节次选择 -->
+<div id="courseModal" class="modal"><div class="modal-content"><h3 id="courseModalTitle">编辑课程</h3><div class="form-group"><label>📖 课程名称</label><input type="text" id="courseNameInput" placeholder="例: 高等数学"></div><div class="form-group"><label>🏫 班级</label><input type="text" id="courseClassInput" placeholder="例: 软件工程1班"></div><div class="modal-buttons"><button id="courseDeleteBtn" style="background:#f56565;color:white;padding:6px 16px;border-radius:30px;">🗑️ 删除</button><button id="courseCancelBtn" style="background:#e2e8f0;padding:6px 16px;border-radius:30px;">取消</button><button id="courseConfirmBtn" style="background:#667eea;color:white;padding:6px 16px;border-radius:30px;">保存</button></div></div></div>
+
+<!-- 编辑课时模态框：增加添加课时功能 -->
+<div id="periodModal" class="modal"><div class="modal-content"><h3>✏️ 编辑课时</h3><div class="form-group"><label>课时名称</label><input type="text" id="periodLabelInput" placeholder="例: 第一节"></div><div class="form-group"><label>时间范围</label><input type="text" id="periodTimeInput" placeholder="例: 8:00-9:00"></div><div class="modal-buttons" style="justify-content: space-between;"><button id="periodAddBtn" class="add-period-btn">➕ 添加新课时</button><div><button id="periodDeleteBtn" style="background:#f56565;color:white;padding:6px 16px;border-radius:30px;">🗑️ 删除</button><button id="periodCancelBtn" style="background:#e2e8f0;padding:6px 16px;border-radius:30px;">取消</button><button id="periodConfirmBtn" style="background:#667eea;color:white;padding:6px 16px;border-radius:30px;">保存</button></div></div></div></div>
+
+<!-- 修改签到记录：课程时间改为自由输入框，并支持任意时间选择 -->
+<div id="statsEditModal" class="modal"><div class="modal-content"><h3>✏️ 修改签到记录</h3><div class="form-group"><label>📅 日期</label><input type="date" id="editStatsDate"></div><div class="form-group"><label>📆 星期</label><select id="editStatsWeekday"><option>星期一</option><option>星期二</option><option>星期三</option><option>星期四</option><option>星期五</option><option>星期六</option><option>星期日</option></select></div><div class="form-group"><label>⏰ 课程时间</label><input type="text" id="editStatsTimeInput" placeholder="例: 9:00-12:00" list="timeSuggestions"></div>
+<datalist id="timeSuggestions"></datalist>
+<div class="modal-buttons"><button id="statsEditCancelBtn" style="background:#e2e8f0;padding:6px 16px;border-radius:30px;">取消</button><button id="statsEditConfirmBtn" style="background:#667eea;color:white;padding:6px 16px;border-radius:30px;">保存修改</button></div></div></div>
+
+<script>
+    // ---------- 存储 KEY ----------
+    const STORAGE_KEYS = {
+        WORKDAY_PERIODS: 'timetable_workday_periods',
+        SATURDAY_PERIODS: 'timetable_saturday_periods',
+        SUNDAY_PERIODS: 'timetable_sunday_periods',
+        COURSE_DATA: 'timetable_course_data',
+        STATS_DATA: 'timetable_stats_data'
+    };
+
+    let workdayPeriods = [], saturdayPeriods = [], sundayPeriods = [];
+    let courseData = new Map();      // key: "weekdayId_periodKey"
+    let statsData = new Map();       // key: "weekdayId_periodKey" -> array
+
+    const DEFAULT_WORKDAY = [
+        { key: "wd_early", label: "早自习", timeRange: "7:00-7:30" },
+        { key: "wd_p1", label: "第一节", timeRange: "7:40-8:20" },
+        { key: "wd_p2", label: "第二节", timeRange: "8:30-9:10" },
+        { key: "wd_p3", label: "第三节", timeRange: "9:20-10:00" },
+        { key: "wd_p4", label: "第四节", timeRange: "10:10-10:50" },
+        { key: "wd_p5", label: "第五节", timeRange: "11:00-11:40" },
+        { key: "wd_after1", label: "下午第一节", timeRange: "14:00-14:40" },
+        { key: "wd_after2", label: "下午第二节", timeRange: "15:40-16:20" },
+        { key: "wd_after3", label: "下午第三节", timeRange: "16:30-17:10" }
+    ];
+    const DEFAULT_SATURDAY = [
+        { key: "sat_morning", label: "上午", timeRange: "9:00-12:00" },
+        { key: "sat_afternoon", label: "下午", timeRange: "14:00-17:00" },
+        { key: "sat_evening", label: "晚间", timeRange: "19:00-21:00" }
+    ];
+    const DEFAULT_SUNDAY = [
+        { key: "sun_morning", label: "上午", timeRange: "9:30-12:00" },
+        { key: "sun_afternoon", label: "下午", timeRange: "14:30-17:30" },
+        { key: "sun_evening", label: "晚间", timeRange: "19:00-20:30" }
+    ];
+
+    // 保存所有数据到 localStorage
+    function saveAllData() {
+        try {
+            localStorage.setItem(STORAGE_KEYS.WORKDAY_PERIODS, JSON.stringify(workdayPeriods));
+            localStorage.setItem(STORAGE_KEYS.SATURDAY_PERIODS, JSON.stringify(saturdayPeriods));
+            localStorage.setItem(STORAGE_KEYS.SUNDAY_PERIODS, JSON.stringify(sundayPeriods));
+            const courseObj = {};
+            for (let [k, v] of courseData.entries()) courseObj[k] = v;
+            localStorage.setItem(STORAGE_KEYS.COURSE_DATA, JSON.stringify(courseObj));
+            const statsObj = {};
+            for (let [k, v] of statsData.entries()) statsObj[k] = v;
+            localStorage.setItem(STORAGE_KEYS.STATS_DATA, JSON.stringify(statsObj));
+        } catch(e) { console.warn("保存失败", e); }
+    }
+
+    function loadAllData() {
+        try {
+            const savedWorkday = localStorage.getItem(STORAGE_KEYS.WORKDAY_PERIODS);
+            if(savedWorkday) workdayPeriods = JSON.parse(savedWorkday);
+            else workdayPeriods = JSON.parse(JSON.stringify(DEFAULT_WORKDAY));
+            
+            const savedSaturday = localStorage.getItem(STORAGE_KEYS.SATURDAY_PERIODS);
+            if(savedSaturday) saturdayPeriods = JSON.parse(savedSaturday);
+            else saturdayPeriods = JSON.parse(JSON.stringify(DEFAULT_SATURDAY));
+            
+            const savedSunday = localStorage.getItem(STORAGE_KEYS.SUNDAY_PERIODS);
+            if(savedSunday) sundayPeriods = JSON.parse(savedSunday);
+            else sundayPeriods = JSON.parse(JSON.stringify(DEFAULT_SUNDAY));
+            
+            const savedCourse = localStorage.getItem(STORAGE_KEYS.COURSE_DATA);
+            if(savedCourse) {
+                const obj = JSON.parse(savedCourse);
+                courseData.clear();
+                for(let k in obj) courseData.set(k, obj[k]);
+            } else courseData.clear();
+            
+            const savedStats = localStorage.getItem(STORAGE_KEYS.STATS_DATA);
+            if(savedStats) {
+                const obj = JSON.parse(savedStats);
+                statsData.clear();
+                for(let k in obj) statsData.set(k, obj[k]);
+            } else statsData.clear();
+        } catch(e) { console.warn("加载失败", e); }
+    }
+
+    function resetAllData() {
+        if(confirm("⚠️ 重置将清空所有课程、签到记录，并恢复默认课时，确定重置吗？")) {
+            courseData.clear();
+            statsData.clear();
+            workdayPeriods = JSON.parse(JSON.stringify(DEFAULT_WORKDAY));
+            saturdayPeriods = JSON.parse(JSON.stringify(DEFAULT_SATURDAY));
+            sundayPeriods = JSON.parse(JSON.stringify(DEFAULT_SUNDAY));
+            saveAllData();
+            renderAllTables();
+            alert("已重置所有数据");
+        }
+    }
+
+    function initData() {
+        loadAllData();
+        renderAllTables();
+    }
+
+    function getCourseData(weekdayId, periodKey) { return courseData.get(`${weekdayId}_${periodKey}`) || null; }
+    function setCourseData(weekdayId, periodKey, courseName, className) {
+        const key = `${weekdayId}_${periodKey}`;
+        if(!courseName || courseName.trim() === "") courseData.delete(key);
+        else courseData.set(key, { courseName: courseName.trim(), className: className?.trim() || "" });
+        saveAllData();
+        renderAllTables();
+    }
+    function deleteCourse(weekdayId, periodKey) { 
+        if(courseData.delete(`${weekdayId}_${periodKey}`)) { saveAllData(); renderAllTables(); return true; } 
+        return false; 
+    }
+
+    function addSignRecord(weekdayId, periodKey, courseName, timeRange, weekdayName) {
+        const now = new Date();
+        const dateStr = `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`;
+        const record = `${dateStr} ${weekdayName} ${timeRange} ${courseName}；`;  // 每条记录后加分号
+        const statsKey = `${weekdayId}_${periodKey}`;
+        if(!statsData.has(statsKey)) statsData.set(statsKey, []);
+        statsData.get(statsKey).unshift({ fullRecord: record, date: dateStr, weekdayName, timeRange, courseName, periodKey });
+        saveAllData();
+        renderAllTables();
+    }
+
+    function updateStatsRecord(statsKey, index, newDate, newWeekdayName, newTimeRange) {
+        const records = statsData.get(statsKey);
+        if(records && records[index]) {
+            const oldRecord = records[index];
+            const newRecord = `${newDate} ${newWeekdayName} ${newTimeRange} ${oldRecord.courseName}；`;  // 修改时也加分号
+            records[index] = { ...oldRecord, fullRecord: newRecord, date: newDate, weekdayName: newWeekdayName, timeRange: newTimeRange };
+            saveAllData();
+            renderAllTables();
+        }
+    }
+
+    function clearStatsForCourse(weekdayId, periodKey) {
+        const statsKey = `${weekdayId}_${periodKey}`;
+        if(statsData.has(statsKey)) { statsData.delete(statsKey); saveAllData(); renderAllTables(); }
+    }
+
+    function updatePeriod(section, periodKey, newLabel, newTimeRange) {
+        let list = section === 'workday' ? workdayPeriods : (section === 'saturday' ? saturdayPeriods : sundayPeriods);
+        const p = list.find(p => p.key === periodKey);
+        if(p) { p.label = newLabel; p.timeRange = newTimeRange; saveAllData(); renderAllTables(); }
+    }
+
+    function addNewPeriod(section) {
+        let list = section === 'workday' ? workdayPeriods : (section === 'saturday' ? saturdayPeriods : sundayPeriods);
+        const newKey = `${section}_custom_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+        const newLabel = prompt("请输入新课时名称", "新课时");
+        if(!newLabel) return;
+        const newTime = prompt("请输入时间范围 (例: 13:00-14:00)", "12:00-13:00");
+        if(!newTime) return;
+        list.push({ key: newKey, label: newLabel, timeRange: newTime });
+        saveAllData();
+        renderAllTables();
+        alert(`已在${section === 'workday' ? '工作日' : (section === 'saturday' ? '周六' : '周日')}添加课时: ${newLabel}`);
+    }
+
+    function deletePeriod(section, periodKey) {
+        let list = section === 'workday' ? workdayPeriods : (section === 'saturday' ? saturdayPeriods : sundayPeriods);
+        if(list.length <= 1) { alert("至少保留一个课时"); return false; }
+        if(confirm("删除课时会删除该课时下所有课程和统计记录")) {
+            for(let [key, _] of courseData.entries()) {
+                const [, pKey] = key.split('_');
+                if(pKey === periodKey) courseData.delete(key);
+            }
+            for(let [key, _] of statsData.entries()) {
+                const [, pKey] = key.split('_');
+                if(pKey === periodKey) statsData.delete(key);
+            }
+            const newList = list.filter(p => p.key !== periodKey);
+            if(section === 'workday') workdayPeriods = newList;
+            else if(section === 'saturday') saturdayPeriods = newList;
+            else sundayPeriods = newList;
+            saveAllData();
+            renderAllTables();
+            return true;
+        }
+        return false;
+    }
+
+    function renderWorkdaySection() {
+        const thead = document.getElementById('workdayHeader');
+        const tbody = document.getElementById('workdayBody');
+        if(!thead || !tbody) return;
+        const weekdays = ['星期一', '星期二', '星期三', '星期四', '星期五'];
+        thead.innerHTML = '<tr><th>时间/课时</th><th>星期一</th><th>星期二</th><th>星期三</th><th>星期四</th><th>星期五</th></tr>';
+        tbody.innerHTML = '';
+        for(let period of workdayPeriods) {
+            const tr = document.createElement('tr');
+            const tdTime = document.createElement('td'); tdTime.className = 'time-col';
+            tdTime.innerHTML = `<span class="period-label-text">${escapeHtml(period.label)}</span><span class="period-time-text">${escapeHtml(period.timeRange)}</span>`;
+            tdTime.onclick = () => openPeriodEditModal(period.key, 'workday');
+            tr.appendChild(tdTime);
+            for(let i = 1; i <= 5; i++) {
+                const td = document.createElement('td');
+                const courseInfo = getCourseData(i, period.key);
+                if(courseInfo && courseInfo.courseName) {
+                    const div = document.createElement('div'); div.className = 'course-content';
+                    const btn = document.createElement('button');
+                    btn.textContent = courseInfo.courseName;
+                    btn.className = 'course-btn';
+                    btn.onclick = () => addSignRecord(i, period.key, courseInfo.courseName, period.timeRange, weekdays[i-1]);
+                    div.appendChild(btn);
+                    if(courseInfo.className) {
+                        const classSpan = document.createElement('div'); classSpan.className = 'course-class-line'; classSpan.textContent = courseInfo.className;
+                        div.appendChild(classSpan);
+                    }
+                    td.appendChild(div);
+                }
+                td.ondblclick = () => openCourseModal(i, period.key);
+                tr.appendChild(td);
+            }
+            tbody.appendChild(tr);
+        }
+    }
+
+    // 周六和周日表格：三列结构 (时间/课时 | 星期X | 参加记录)
+    function renderWeekendSection(tableId, headerId, bodyId, weekdayId, periods, weekdayName) {
+        const thead = document.getElementById(headerId);
+        const tbody = document.getElementById(bodyId);
+        if(!thead || !tbody) return;
+        thead.innerHTML = `<tr><th>时间/课时</th><th>${weekdayName}</th><th>📊 参加记录</th></tr>`;
+        tbody.innerHTML = '';
+        for(let period of periods) {
+            const tr = document.createElement('tr');
+            const tdTime = document.createElement('td'); tdTime.className = 'time-col';
+            tdTime.innerHTML = `<span class="period-label-text">${escapeHtml(period.label)}</span><span class="period-time-text">${escapeHtml(period.timeRange)}</span>`;
+            tdTime.onclick = () => openPeriodEditModal(period.key, weekdayId === 6 ? 'saturday' : 'sunday');
+            tr.appendChild(tdTime);
+            
+            const tdCourse = document.createElement('td');
+            const courseInfo = getCourseData(weekdayId, period.key);
+            if(courseInfo && courseInfo.courseName) {
+                const div = document.createElement('div'); div.className = 'course-content';
+                const btn = document.createElement('button');
+                btn.textContent = courseInfo.courseName;
+                btn.className = 'course-btn';
+                btn.onclick = () => addSignRecord(weekdayId, period.key, courseInfo.courseName, period.timeRange, weekdayName);
+                div.appendChild(btn);
+                if(courseInfo.className) {
+                    const classSpan = document.createElement('div'); classSpan.className = 'course-class-line'; classSpan.textContent = courseInfo.className;
+                    div.appendChild(classSpan);
+                }
+                tdCourse.appendChild(div);
+            }
+            tdCourse.ondblclick = () => openCourseModal(weekdayId, period.key);
+            tr.appendChild(tdCourse);
+            
+            const tdStats = document.createElement('td'); tdStats.className = 'stats-column';
+            const statsKey = `${weekdayId}_${period.key}`;
+            const records = statsData.get(statsKey) || [];
+            if(records.length > 0) {
+                const statsDiv = document.createElement('div'); statsDiv.className = 'stats-list';
+                records.forEach((record, idx) => {
+                    const item = document.createElement('div'); item.className = 'stats-item'; 
+                    item.textContent = record.fullRecord;
+                    item.onclick = () => openStatsEditModal(statsKey, idx, record, weekdayId);
+                    statsDiv.appendChild(item);
+                });
+                const clearBtn = document.createElement('button');
+                clearBtn.textContent = '🗑️ 清空记录';
+                clearBtn.className = 'clear-stats-btn';
+                clearBtn.onclick = (e) => { e.stopPropagation(); if(confirm('清空该课程的签到记录？')) clearStatsForCourse(weekdayId, period.key); };
+                statsDiv.appendChild(clearBtn);
+                tdStats.appendChild(statsDiv);
+            } else {
+                tdStats.textContent = '暂无签到记录';
+                tdStats.style.color = '#94a3b8';
+                tdStats.style.fontSize = '0.65rem';
+                tdStats.style.textAlign = 'center';
+            }
+            tr.appendChild(tdStats);
+            tbody.appendChild(tr);
+        }
+    }
+
+    function renderAllTables() {
+        renderWorkdaySection();
+        renderWeekendSection('saturdayTable', 'saturdayHeader', 'saturdayBody', 6, saturdayPeriods, '星期六');
+        renderWeekendSection('sundayTable', 'sundayHeader', 'sundayBody', 7, sundayPeriods, '星期日');
+    }
+
+    // 导出Excel：仅周六周日
+    function exportWeekendExcel() {
+        const weekendData = [];
+        weekendData.push(['星期六', '', '']);
+        weekendData.push(['课时', '课程名称', '签到记录']);
+        for(let p of saturdayPeriods) {
+            const info = getCourseData(6, p.key);
+            const statsKey = `6_${p.key}`;
+            const records = (statsData.get(statsKey) || []).map(r => r.fullRecord).join('\n');
+            let courseDisplay = info?.courseName || '';
+            if(info?.className) courseDisplay += ` (${info.className})`;
+            weekendData.push([`${p.label} (${p.timeRange})`, courseDisplay, records]);
+        }
+        weekendData.push(['', '', '']);
+        weekendData.push(['星期日', '', '']);
+        weekendData.push(['课时', '课程名称', '签到记录']);
+        for(let p of sundayPeriods) {
+            const info = getCourseData(7, p.key);
+            const statsKey = `7_${p.key}`;
+            const records = (statsData.get(statsKey) || []).map(r => r.fullRecord).join('\n');
+            let courseDisplay = info?.courseName || '';
+            if(info?.className) courseDisplay += ` (${info.className})`;
+            weekendData.push([`${p.label} (${p.timeRange})`, courseDisplay, records]);
+        }
+        const ws = XLSX.utils.aoa_to_sheet(weekendData);
+        ws['!cols'] = [{wch:22},{wch:22},{wch:42}];
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, '周末课程表');
+        XLSX.writeFile(wb, `周末课程表_${new Date().toISOString().slice(0,10)}.xlsx`);
+    }
+
+    async function exportAsImage() {
+        const element = document.getElementById('captureArea');
+        element.classList.add('export-hide');
+        try {
+            const canvas = await html2canvas(element, { scale: 2.5, backgroundColor: '#ffffff', logging: false });
+            const link = document.createElement('a');
+            link.download = `课程表_${new Date().toISOString().slice(0,10)}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        } catch (error) {
+            console.error('导出失败:', error);
+            alert('导出图片失败，请重试');
+        } finally {
+            element.classList.remove('export-hide');
+        }
+    }
+
+    function clearAllCourses() { if(confirm("清空所有课程？")) { courseData.clear(); saveAllData(); renderAllTables(); } }
+    function clearAllStats() { if(confirm("清空所有签到统计记录？")) { statsData.clear(); saveAllData(); renderAllTables(); } }
+
+    function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+
+    // 动态更新 datalist 提示（基于当前课时时间，但仍然允许用户自由输入）
+    function updateTimeSuggestions(weekdayId) {
+        const periods = weekdayId === 6 ? saturdayPeriods : (weekdayId === 7 ? sundayPeriods : workdayPeriods);
+        const datalist = document.getElementById('timeSuggestions');
+        datalist.innerHTML = '';
+        periods.forEach(p => {
+            const option = document.createElement('option');
+            option.value = p.timeRange;
+            datalist.appendChild(option);
+        });
+    }
+
+    document.getElementById('periodAddBtn').onclick = () => {
+        if(currentEditSection) {
+            addNewPeriod(currentEditSection);
+            closePeriodModal();
+        } else {
+            alert("请先点击课时打开编辑窗口再添加");
+        }
+    };
+
+    let currentStatsKey = null, currentStatsIndex = null, currentStatsWeekdayId = null;
+    function openStatsEditModal(statsKey, index, record, weekdayId) {
+        currentStatsKey = statsKey; currentStatsIndex = index; currentStatsWeekdayId = weekdayId;
+        const dateMatch = record.fullRecord.match(/^(\d{4}年\d{1,2}月\d{1,2}日)/);
+        if(dateMatch) {
+            const dateStr = dateMatch[1].replace(/年/g,'-').replace(/月/g,'-').replace(/日/g,'');
+            document.getElementById('editStatsDate').value = dateStr;
+        } else {
+            document.getElementById('editStatsDate').value = '';
+        }
+        document.getElementById('editStatsWeekday').value = record.weekdayName;
+        // 自由输入框，设置当前值并提供 datalist 提示（用户也可以任意输入）
+        updateTimeSuggestions(weekdayId);
+        const timeInput = document.getElementById('editStatsTimeInput');
+        timeInput.value = record.timeRange || '';
+        document.getElementById('statsEditModal').style.display = 'flex';
+    }
+    
+    function saveStatsEdit() {
+        if(!currentStatsKey || currentStatsIndex === null) return;
+        let dateInput = document.getElementById('editStatsDate').value;
+        if(!dateInput) { alert("请选择日期"); return; }
+        const dateObj = new Date(dateInput);
+        const newDate = `${dateObj.getFullYear()}年${dateObj.getMonth()+1}月${dateObj.getDate()}日`;
+        const newWeekday = document.getElementById('editStatsWeekday').value;
+        const newTime = document.getElementById('editStatsTimeInput').value.trim();
+        if(!newDate || !newWeekday || !newTime) { alert("请填写完整信息"); return; }
+        updateStatsRecord(currentStatsKey, currentStatsIndex, newDate, newWeekday, newTime);
+        closeStatsModal();
+    }
+    function closeStatsModal() { document.getElementById('statsEditModal').style.display = 'none'; currentStatsKey = null; currentStatsIndex = null; }
+
+    // 修改后的课程编辑：只弹窗输入课程名和班级，无需选择星期和课时，双击课程位置直接弹出，保存时使用当前双击的星期和课时
+    let currentCourseWeekday = null, currentCoursePeriodKey = null;
+    function openCourseModal(weekdayId, periodKey) {
+        currentCourseWeekday = weekdayId;
+        currentCoursePeriodKey = periodKey;
+        const info = getCourseData(weekdayId, periodKey);
+        document.getElementById('courseModalTitle').innerText = info ? '修改课程' : '添加课程';
+        document.getElementById('courseNameInput').value = info?.courseName || '';
+        document.getElementById('courseClassInput').value = info?.className || '';
+        const deleteBtn = document.getElementById('courseDeleteBtn');
+        deleteBtn.style.display = info ? 'inline-block' : 'none';
+        deleteBtn.onclick = () => { 
+            if(confirm('删除课程？')) { 
+                deleteCourse(weekdayId, periodKey); 
+                closeCourseModal(); 
+            } 
+        };
+        document.getElementById('courseModal').style.display = 'flex';
+    }
+    
+    function saveCourseFromModal() {
+        const courseName = document.getElementById('courseNameInput').value.trim();
+        if(!courseName) { alert("请输入课程名称"); return; }
+        const className = document.getElementById('courseClassInput').value.trim();
+        if(currentCourseWeekday !== null && currentCoursePeriodKey !== null) {
+            setCourseData(currentCourseWeekday, currentCoursePeriodKey, courseName, className);
+        }
+        closeCourseModal();
+    }
+    function closeCourseModal() { document.getElementById('courseModal').style.display = 'none'; }
+
+    let currentEditSection = null, currentEditKey = null;
+    function openPeriodEditModal(periodKey, section) {
+        currentEditSection = section; currentEditKey = periodKey;
+        let list = section === 'workday' ? workdayPeriods : (section === 'saturday' ? saturdayPeriods : sundayPeriods);
+        const period = list.find(p => p.key === periodKey);
+        if(!period) return;
+        document.getElementById('periodLabelInput').value = period.label;
+        document.getElementById('periodTimeInput').value = period.timeRange;
+        const deleteBtn = document.getElementById('periodDeleteBtn');
+        deleteBtn.onclick = () => { if(deletePeriod(section, periodKey)) closePeriodModal(); };
+        document.getElementById('periodModal').style.display = 'flex';
+    }
+    function savePeriodEdit() {
+        if(!currentEditKey) return;
+        const label = document.getElementById('periodLabelInput').value.trim();
+        const time = document.getElementById('periodTimeInput').value.trim();
+        if(!label || !time) { alert("请填写完整"); return; }
+        updatePeriod(currentEditSection, currentEditKey, label, time);
+        closePeriodModal();
+    }
+    function closePeriodModal() { document.getElementById('periodModal').style.display = 'none'; currentEditKey = null; }
+
+    document.getElementById('clearAllCoursesBtn').onclick = clearAllCourses;
+    document.getElementById('clearAllStatsBtn').onclick = clearAllStats;
+    document.getElementById('exportExcelBtn').onclick = exportWeekendExcel;
+    document.getElementById('exportImageBtn').onclick = exportAsImage;
+    document.getElementById('resetAllDataBtn').onclick = resetAllData;
+    document.getElementById('courseConfirmBtn').onclick = saveCourseFromModal;
+    document.getElementById('courseCancelBtn').onclick = closeCourseModal;
+    document.getElementById('periodConfirmBtn').onclick = savePeriodEdit;
+    document.getElementById('periodCancelBtn').onclick = closePeriodModal;
+    document.getElementById('statsEditConfirmBtn').onclick = saveStatsEdit;
+    document.getElementById('statsEditCancelBtn').onclick = closeStatsModal;
+    window.onclick = (e) => { if(e.target.classList.contains('modal')) { closeCourseModal(); closePeriodModal(); closeStatsModal(); } };
+    
+    initData();
+</script>
+</body>
 </html>
