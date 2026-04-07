@@ -1,11 +1,1278 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>PakePlus</title>
-    </head>
-    <body>
-        PakePlus
-    </body>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>奉天承运</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(145deg, #ffdde1 0%, #ee9ca7 100%);
+            font-family: 'Segoe UI', 'Quicksand', 'Poppins', system-ui, -apple-system, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 12px;
+            position: relative;
+        }
+
+        /* 漂浮爱心背景 */
+        .floating-hearts {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .heart {
+            position: absolute;
+            font-size: 0.9rem;
+            opacity: 0.25;
+            animation: floatHeart 12s linear infinite;
+            color: #ff6b8b;
+            user-select: none;
+        }
+
+        @keyframes floatHeart {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.3;
+            }
+            90% {
+                opacity: 0.3;
+            }
+            100% {
+                transform: translateY(-20vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* 主卡片 */
+        .romance-card {
+            position: relative;
+            z-index: 10;
+            max-width: 460px;
+            width: 100%;
+            background: rgba(255, 250, 245, 0.95);
+            backdrop-filter: blur(2px);
+            border-radius: 48px;
+            box-shadow: 0 20px 35px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 215, 215, 0.6);
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        /* 密码锁屏界面 - 极简风格 */
+        .lock-screen {
+            padding: 2.5rem 1.5rem;
+            text-align: center;
+        }
+
+        .lock-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .password-input-area {
+            margin-bottom: 1.2rem;
+            max-width: 200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .password-input-area input {
+            width: 100%;
+            text-align: center;
+            font-size: 1.2rem;
+            letter-spacing: 4px;
+            font-family: monospace;
+            border-radius: 60px;
+            padding: 12px 16px;
+            border: 2px solid #ffcdd9;
+            background: #fffafc;
+            outline: none;
+        }
+
+        .password-input-area input:focus {
+            border-color: #ff8aa1;
+            box-shadow: 0 0 0 3px rgba(255, 138, 161, 0.2);
+        }
+
+        .unlock-btn {
+            background: linear-gradient(125deg, #ff9a9e, #fbc2c2);
+            color: white;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-block;
+        }
+
+        .unlock-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 14px rgba(255, 80, 110, 0.4);
+        }
+
+        .error-msg {
+            color: #dc6b8a;
+            font-size: 0.75rem;
+            margin-top: 12px;
+            min-height: 32px;
+        }
+
+        /* 主内容区域（默认隐藏） */
+        .main-content {
+            display: none;
+        }
+
+        /* 浪漫头部 */
+        .romance-header {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+            padding: 1rem 1.2rem 0.8rem;
+            text-align: center;
+            border-bottom: 2px solid #ffb7b2;
+        }
+
+        .romance-header h1 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .romance-quote {
+            background: rgba(255, 245, 240, 0.9);
+            margin: 8px 10px 0;
+            padding: 8px 10px;
+            border-radius: 40px;
+            font-size: 0.68rem;
+            color: #b84c6b;
+            text-align: center;
+            font-weight: 500;
+            line-height: 1.3;
+            border: 1px solid #ffcdd9;
+        }
+
+        .header-decoration {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 8px;
+            font-size: 0.8rem;
+        }
+
+        /* 选项卡样式 */
+        .tabs {
+            display: flex;
+            background: #fff5f0;
+            border-bottom: 2px solid #ffd9e2;
+        }
+
+        .tab-btn {
+            flex: 1;
+            background: none;
+            border: none;
+            padding: 12px 0;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #b57c94;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tab-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 138, 161, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .tab-btn:hover::before {
+            left: 100%;
+        }
+
+        .tab-btn.active {
+            color: #b84c6b;
+            background: #fffaf7;
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, #ff8aa1, #ffb7c5, #ff8aa1);
+            border-radius: 3px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                width: 0;
+                left: 50%;
+            }
+            to {
+                width: 100%;
+                left: 0;
+            }
+        }
+
+        /* 动态背景动画 */
+        @keyframes gradientShift {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        @keyframes softPulse {
+            0%, 100% {
+                opacity: 0.6;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
+
+        .tab-pane {
+            display: none;
+            padding: 1.2rem 1.2rem;
+            position: relative;
+            background: linear-gradient(135deg, 
+                rgba(255, 240, 245, 0.92), 
+                rgba(255, 245, 250, 0.92),
+                rgba(255, 235, 245, 0.92),
+                rgba(255, 240, 248, 0.92));
+            background-size: 300% 300%;
+            animation: gradientShift 8s ease infinite;
+            border-radius: 0 0 32px 32px;
+        }
+
+        .tab-pane::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 40%, rgba(255, 200, 210, 0.15) 0%, transparent 70%);
+            pointer-events: none;
+            animation: softPulse 4s ease-in-out infinite;
+        }
+
+        .tab-pane::after {
+            content: '✨';
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            font-size: 1.2rem;
+            opacity: 0.3;
+            pointer-events: none;
+            animation: gentleFloat 6s ease-in-out infinite;
+        }
+
+        @keyframes gentleFloat {
+            0%, 100% {
+                transform: translateY(0px) rotate(0deg);
+                opacity: 0.3;
+            }
+            50% {
+                transform: translateY(-8px) rotate(15deg);
+                opacity: 0.6;
+            }
+        }
+
+        .tab-pane.active {
+            display: block;
+            animation: gradientShift 8s ease infinite, fadeInUp 0.4s ease;
+        }
+
+        /* 为不同选项卡添加不同的装饰元素 */
+        #encryptPane::after {
+            content: '🔐';
+            bottom: 15px;
+            right: 15px;
+            font-size: 1.2rem;
+            opacity: 0.3;
+        }
+
+        #decryptPane::after {
+            content: '🔓';
+            bottom: 15px;
+            right: 15px;
+            font-size: 1.2rem;
+            opacity: 0.3;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #b84c6b;
+            border-left: 4px solid #ff8aa1;
+            padding-left: 12px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 0 20px 20px 0;
+            backdrop-filter: blur(4px);
+        }
+
+        textarea, input {
+            width: 100%;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.82rem;
+            border-radius: 24px;
+            border: 1.5px solid rgba(255, 205, 217, 0.8);
+            background: rgba(255, 250, 252, 0.95);
+            padding: 10px 14px;
+            outline: none;
+            transition: all 0.3s;
+            backdrop-filter: blur(2px);
+        }
+
+        textarea:focus, input:focus {
+            border-color: #ff8aa1;
+            box-shadow: 0 0 0 3px rgba(255, 138, 161, 0.2);
+            transform: scale(1.01);
+            background: rgba(255, 255, 255, 0.98);
+        }
+
+        textarea {
+            min-height: 90px;
+            resize: vertical;
+        }
+
+        .key-area {
+            margin: 14px 0 12px;
+        }
+
+        .key-label {
+            font-weight: 600;
+            margin-bottom: 6px;
+            display: block;
+            font-size: 0.72rem;
+            color: #b84c6b;
+        }
+
+        .flex-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 14px 0 14px;
+        }
+
+        button {
+            background: rgba(255, 240, 243, 0.9);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.72rem;
+            cursor: pointer;
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: 1.5px solid rgba(255, 202, 210, 0.8);
+            color: #a53f5c;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(4px);
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 138, 161, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.5s, height 0.5s;
+        }
+
+        button:hover::before {
+            width: 200px;
+            height: 200px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 105, 130, 0.3);
+            background: rgba(255, 245, 248, 0.95);
+        }
+
+        button.primary {
+            background: linear-gradient(125deg, #ff9a9e, #fbc2c2);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 8px rgba(255, 105, 130, 0.25);
+        }
+
+        .result-box {
+            background: rgba(255, 250, 253, 0.9);
+            border-radius: 20px;
+            padding: 10px 12px;
+            margin-top: 10px;
+            border: 1.5px solid rgba(255, 224, 230, 0.8);
+            word-break: break-all;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 0.68rem;
+            max-height: 100px;
+            overflow-y: auto;
+            transition: all 0.3s;
+            backdrop-filter: blur(2px);
+        }
+
+        .result-box:hover {
+            border-color: #ffb7c5;
+            box-shadow: 0 2px 8px rgba(255, 138, 161, 0.1);
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .copy-btn, .clear-btn {
+            background: linear-gradient(135deg, rgba(255, 238, 242, 0.9), rgba(255, 228, 234, 0.9));
+            border: 1px solid #ffb7c5;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 0.62rem;
+            color: #c2416b;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(4px);
+        }
+
+        /* 全透明隐藏按钮 */
+        .secret-btn {
+            background: transparent;
+            border: none;
+            padding: 4px 8px;
+            font-size: 0.6rem;
+            cursor: pointer;
+            color: transparent;
+            transition: all 0.2s;
+            opacity: 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .secret-btn:hover {
+            opacity: 0.3;
+            background: rgba(255, 138, 161, 0.1);
+            border-radius: 20px;
+        }
+
+        .clear-btn::before {
+            content: '🧹';
+            position: absolute;
+            left: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+            transition: left 0.3s;
+        }
+
+        .clear-btn:hover::before {
+            left: 8px;
+        }
+
+        .clear-btn:hover {
+            padding-left: 28px;
+            background: linear-gradient(135deg, rgba(255, 217, 226, 0.95), rgba(255, 203, 214, 0.95));
+            transform: scale(1.05);
+        }
+
+        .copy-btn::before {
+            content: '✨';
+            position: absolute;
+            left: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+            transition: left 0.3s;
+        }
+
+        .copy-btn:hover::before {
+            left: 8px;
+        }
+
+        .copy-btn:hover {
+            padding-left: 28px;
+            background: linear-gradient(135deg, rgba(255, 217, 226, 0.95), rgba(255, 203, 214, 0.95));
+            transform: scale(1.05);
+        }
+
+        .tip-container {
+            min-height: 26px;
+            margin-top: 5px;
+        }
+
+        .message-tip {
+            font-size: 0.62rem;
+            padding: 3px 10px;
+            border-radius: 30px;
+            display: inline-block;
+            animation: fadeSoft 2s ease forwards;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(4px);
+        }
+
+        .message-tip.success {
+            background: rgba(255, 224, 232, 0.95);
+            color: #c2416b;
+        }
+
+        .message-tip.error {
+            background: rgba(255, 224, 224, 0.95);
+            color: #bc4e6c;
+        }
+
+        @keyframes fadeSoft {
+            0% { opacity: 1; transform: translateY(0); }
+            70% { opacity: 1; }
+            100% { opacity: 0; transform: translateY(-5px); display: none; }
+        }
+
+        footer {
+            background: rgba(255, 245, 240, 0.95);
+            padding: 8px;
+            text-align: center;
+            font-size: 0.55rem;
+            color: #cf7b97;
+            border-top: 1px solid #ffd9e2;
+            backdrop-filter: blur(4px);
+        }
+
+        .loading-quote {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border: 2px solid #ffb7c5;
+            border-top-color: #ff6b8b;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            vertical-align: middle;
+            margin-left: 6px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 浪漫闪光效果 */
+        @keyframes gentleShine {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; text-shadow: 0 0 5px rgba(255, 105, 130, 0.3); }
+        }
+
+        .section-title {
+            animation: gentleShine 3s ease-in-out infinite;
+        }
+        
+        /* 密钥设置弹窗样式 */
+        .key-dialog-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .key-dialog {
+            background: linear-gradient(135deg, #fff5f8, #ffeef4);
+            border-radius: 32px;
+            padding: 24px 20px;
+            max-width: 320px;
+            width: 85%;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            border: 1px solid #ffcdd9;
+            animation: slideUp 0.3s ease;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .key-dialog h3 {
+            color: #b84c6b;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+        }
+        
+        .key-dialog p {
+            color: #cf7b97;
+            font-size: 0.7rem;
+            margin-bottom: 16px;
+        }
+        
+        .key-dialog input {
+            margin-bottom: 16px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+        
+        .dialog-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+        
+        .dialog-buttons button {
+            padding: 8px 20px;
+            font-size: 0.75rem;
+        }
+    </style>
+</head>
+<body>
+<div class="floating-hearts" id="floatingHearts"></div>
+
+<div class="romance-card" id="appContainer">
+    <!-- 密码锁屏界面 - 简洁版 -->
+    <div id="lockScreen" class="lock-screen">
+        <div class="lock-icon">🔐💖</div>
+        <div class="password-input-area">
+            <input type="password" id="passwordInput" placeholder="请输入密码" maxlength="6" autocomplete="off">
+        </div>
+        <button id="unlockBtn" class="unlock-btn">开启</button>
+        <div id="lockErrorMsg" class="error-msg"></div>
+    </div>
+
+    <!-- 主内容区域（解锁后显示） -->
+    <div id="mainContent" class="main-content">
+        <div class="romance-header">
+          
+            <div id="dynamicQuote" class="romance-quote">🌹 加载浪漫文案中... <span class="loading-quote"></span></div>
+            <div class="header-decoration">
+                <span>🌸</span> <span>✨</span> <span>💌</span>
+            </div>
+        </div>
+
+        <!-- 选项卡 -->
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="encrypt">🔐 加密 · 藏起心意</button>
+            <button class="tab-btn" data-tab="decrypt">🔓 解密 · 读懂真心</button>
+        </div>
+
+        <!-- 加密选项卡 -->
+        <div id="encryptPane" class="tab-pane active">
+            <div class="section-title">
+                💌 想说……
+                <button id="secretKeyBtn" class="secret-btn" style="margin-left: auto;">🔑</button>
+            </div>
+            <textarea id="plainText" placeholder="想说……"></textarea>
+            
+            <div class="flex-buttons">
+                <button id="encryptBtn" class="primary">✨ —>密语</button>
+            </div>
+
+            <div>
+                <div class="result-header">
+                    
+                    <button id="copyEncrypted" class="copy-btn">📋 复制</button>
+                </div>
+                <div id="encryptedResult" class="result-box"></div>
+                <div id="encryptedTip" class="tip-container"></div>
+            </div>
+        </div>
+
+        <!-- 解密选项卡 -->
+        <div id="decryptPane" class="tab-pane">
+            <div class="section-title">
+                🌹 解读
+            </div>
+            <textarea id="cipherInput" placeholder="将收到的密文粘贴在这里..."></textarea>
+            
+            <div class="key-area">
+                <label class="key-label">🔑 输入解密密钥（与加密时一致）</label>
+                <input type="text" id="decryptKeyInput" placeholder="请输入密钥" value="">
+                <div class="tip-container" id="decryptKeyTip"></div>
+            </div>
+            
+            <div class="flex-buttons">
+                <button id="decryptBtn" class="primary">🌹 解密</button>
+            </div>
+
+            <div>
+                <div class="result-header">
+                    
+                    <button id="clearDecryptOnly" class="clear-btn">🧹 清空</button>
+                </div>
+                <div id="decryptedResult" class="result-box"></div>
+                <div id="decryptedTip" class="tip-container"></div>
+            </div>
+        </div>
+
+        <footer>
+            <span>✨ 每次加密结果都不同 · 5秒无操作自动清空 ✨</span>
+        </footer>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // 加密密钥变量，默认0221
+        let encryptionKey = "0221";
+        
+        // 定时器变量
+        let autoClearTimer = null;
+        
+        // ========== 生成当日密码（月日时，各2位）==========
+        function getTodayPassword() {
+            const now = new Date();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hour = String(now.getHours()).padStart(2, '0');
+            return month + day + hour;
+        }
+
+        const CORRECT_PASSWORD = getTodayPassword();
+
+        // DOM 元素
+        const lockScreen = document.getElementById('lockScreen');
+        const mainContent = document.getElementById('mainContent');
+        const passwordInput = document.getElementById('passwordInput');
+        const unlockBtn = document.getElementById('unlockBtn');
+        const lockErrorMsg = document.getElementById('lockErrorMsg');
+
+        // 解锁逻辑
+        function unlock() {
+            const entered = passwordInput.value.trim();
+            if (entered === CORRECT_PASSWORD) {
+                lockScreen.style.display = 'none';
+                mainContent.style.display = 'block';
+                // 解锁后初始化浪漫文案和其他功能
+                initRomanticQuote();
+                initTabs();
+                initCryptoFeatures();
+                // 启动自动清空定时器
+                resetAutoClearTimer();
+            } else {
+                lockErrorMsg.textContent = '密码错误，请输入正确的密码';
+                passwordInput.value = '';
+                passwordInput.focus();
+                setTimeout(() => {
+                    if (lockErrorMsg.textContent === '密码错误，请输入正确的密码') {
+                        lockErrorMsg.textContent = '';
+                    }
+                }, 2500);
+            }
+        }
+
+        // 回车解锁
+        passwordInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') unlock();
+        });
+        unlockBtn.addEventListener('click', unlock);
+
+        // 生成漂浮爱心
+        function createFloatingHearts() {
+            const container = document.getElementById('floatingHearts');
+            if (!container) return;
+            const heartSymbols = ['❤️', '💖', '💗', '💓', '💕', '💞', '🌸', '💌'];
+            for (let i = 0; i < 20; i++) {
+                const heart = document.createElement('div');
+                heart.className = 'heart';
+                heart.textContent = heartSymbols[Math.floor(Math.random() * heartSymbols.length)];
+                const size = 0.7 + Math.random() * 1;
+                heart.style.fontSize = `${size}rem`;
+                heart.style.left = `${Math.random() * 100}%`;
+                heart.style.animationDuration = `${9 + Math.random() * 12}s`;
+                heart.style.animationDelay = `${Math.random() * 15}s`;
+                heart.style.opacity = 0.2 + Math.random() * 0.35;
+                container.appendChild(heart);
+            }
+        }
+        createFloatingHearts();
+
+        // 浪漫文案联网获取
+        const dynamicQuoteDiv = document.getElementById('dynamicQuote');
+        const fallbackQuotes = [
+            "每一次加密都是独一无二的浪漫暗号，唯有对的人才能解开 💕",
+            "你的心事，只有对的密钥才能解锁 🌸",
+            "每一段密语，都是只为你绽放的星辰 ✨",
+            "加密是锁，爱意是唯一的钥匙 🔐",
+            "每次密文都不同，但爱意始终如一 💖"
+        ];
+        
+        async function fetchRomanticQuote() {
+            const apis = [
+                'https://api.btstu.cn/yan/api.php?charset=utf-8&encode=json',
+                'https://api.uomg.com/api/rand.qinghua?format=json',
+                'https://api.ixiaowai.cn/api/api.php?return=json'
+            ];
+            for (const apiUrl of apis) {
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 4000);
+                    const response = await fetch(apiUrl, { signal: controller.signal });
+                    clearTimeout(timeoutId);
+                    if (response.ok) {
+                        const text = await response.text();
+                        let sentence = '';
+                        try {
+                            const json = JSON.parse(text);
+                            if (json.content) sentence = json.content;
+                            else if (json.data && json.data.content) sentence = json.data.content;
+                            else if (json.text) sentence = json.text;
+                            else if (json.sentence) sentence = json.sentence;
+                            else if (json.msg) sentence = json.msg;
+                        } catch(e) {
+                            sentence = text.trim();
+                        }
+                        if (sentence && sentence.length > 5 && sentence.length < 200) {
+                            sentence = sentence.replace(/[\r\n]/g, ' ').substring(0, 100);
+                            return sentence;
+                        }
+                    }
+                } catch (e) {}
+            }
+            return fallbackQuotes[Math.floor(Math.random() * fallbackQuotes.length)];
+        }
+        
+        async function initRomanticQuote() {
+            if (!dynamicQuoteDiv) return;
+            dynamicQuoteDiv.innerHTML = '💌 加载浪漫文案中... <span class="loading-quote"></span>';
+            try {
+                const quote = await fetchRomanticQuote();
+                dynamicQuoteDiv.innerHTML = quote;
+            } catch (err) {
+                dynamicQuoteDiv.innerHTML = fallbackQuotes[Math.floor(Math.random() * fallbackQuotes.length)];
+            }
+        }
+
+        // 选项卡切换
+        function initTabs() {
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const encryptPane = document.getElementById('encryptPane');
+            const decryptPane = document.getElementById('decryptPane');
+            
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const target = btn.getAttribute('data-tab');
+                    tabBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    if (target === 'encrypt') {
+                        encryptPane.classList.add('active');
+                        decryptPane.classList.remove('active');
+                    } else {
+                        decryptPane.classList.add('active');
+                        encryptPane.classList.remove('active');
+                    }
+                    // 切换选项卡时重置定时器
+                    resetAutoClearTimer();
+                });
+            });
+        }
+
+        // 清空两个选项卡的所有内容
+        function clearAllTabs() {
+            const plainTextarea = document.getElementById('plainText');
+            const encryptedResult = document.getElementById('encryptedResult');
+            const cipherInput = document.getElementById('cipherInput');
+            const decryptKeyInput = document.getElementById('decryptKeyInput');
+            const decryptedResult = document.getElementById('decryptedResult');
+            
+            // 清空加密选项卡
+            if (plainTextarea) plainTextarea.value = '';
+            if (encryptedResult) encryptedResult.innerHTML = '💭 点击加密，生成专属密文';
+            
+            // 清空解密选项卡
+            if (cipherInput) cipherInput.value = '';
+            if (decryptKeyInput) decryptKeyInput.value = '';
+            if (decryptedResult) decryptedResult.innerHTML = '';
+            
+            // 清空提示信息
+            const encryptedTip = document.getElementById('encryptedTip');
+            const decryptedTip = document.getElementById('decryptedTip');
+            const decryptKeyTip = document.getElementById('decryptKeyTip');
+            if (encryptedTip) encryptedTip.innerHTML = '';
+            if (decryptedTip) decryptedTip.innerHTML = '';
+            if (decryptKeyTip) decryptKeyTip.innerHTML = '';
+            
+            // 显示清空提示
+            const activePane = document.querySelector('.tab-pane.active');
+            if (activePane && activePane.id === 'encryptPane') {
+                showTip(document.getElementById('encryptedTip'), "已自动清空所有内容 🧹", false);
+            } else {
+                showTip(document.getElementById('decryptedTip'), "已自动清空所有内容 🧹", false);
+            }
+        }
+        
+        // 重置自动清空定时器
+        function resetAutoClearTimer() {
+            if (autoClearTimer) {
+                clearTimeout(autoClearTimer);
+            }
+            autoClearTimer = setTimeout(() => {
+                clearAllTabs();
+            }, 5000); // 5秒后自动清空
+        }
+        
+        // 监听用户活动，重置定时器
+        function setupActivityListeners() {
+            const inputs = document.querySelectorAll('textarea, input, button');
+            inputs.forEach(element => {
+                element.addEventListener('click', resetAutoClearTimer);
+                element.addEventListener('input', resetAutoClearTimer);
+                element.addEventListener('focus', resetAutoClearTimer);
+            });
+            // 监听整个主内容区域的点击
+            const mainContentDiv = document.getElementById('mainContent');
+            if (mainContentDiv) {
+                mainContentDiv.addEventListener('click', resetAutoClearTimer);
+            }
+        }
+
+        function showTip(container, text, isError = false) {
+            if (!container) return;
+            const tipDiv = document.createElement('div');
+            tipDiv.className = `message-tip ${isError ? 'error' : 'success'}`;
+            tipDiv.innerHTML = isError ? `💔 ${text}` : `💖 ${text}`;
+            container.innerHTML = '';
+            container.appendChild(tipDiv);
+            setTimeout(() => {
+                if (tipDiv.parentNode) tipDiv.remove();
+            }, 2000);
+        }
+        
+        // 显示密钥设置弹窗
+        function showKeyDialog() {
+            // 创建遮罩层
+            const overlay = document.createElement('div');
+            overlay.className = 'key-dialog-overlay';
+            
+            // 创建弹窗
+            const dialog = document.createElement('div');
+            dialog.className = 'key-dialog';
+            dialog.innerHTML = `
+                <h3>🔑 设置加密密钥</h3>
+                <p>请输入加密密钥（留空则使用默认密钥）</p>
+                <input type="text" id="newKeyInput" placeholder="请输入密钥">
+                <div class="dialog-buttons">
+                    <button id="confirmKeyBtn" class="primary">确认</button>
+                    <button id="cancelKeyBtn" class="secondary">取消</button>
+                </div>
+            `;
+            
+            overlay.appendChild(dialog);
+            document.body.appendChild(overlay);
+            
+            // 获取输入框
+            const newKeyInput = document.getElementById('newKeyInput');
+            const confirmBtn = document.getElementById('confirmKeyBtn');
+            const cancelBtn = document.getElementById('cancelKeyBtn');
+            
+            // 确认按钮事件
+            const confirmHandler = () => {
+                let newKey = newKeyInput.value.trim();
+                if (newKey === "") {
+                    encryptionKey = "0221";
+                    showTip(document.getElementById('encryptedTip'), "已恢复默认密钥 🔐", false);
+                } else {
+                    encryptionKey = newKey;
+                    showTip(document.getElementById('encryptedTip'), "加密密钥已设置 💖", false);
+                }
+                overlay.remove();
+                resetAutoClearTimer();
+            };
+            
+            // 取消按钮事件
+            const cancelHandler = () => {
+                overlay.remove();
+                resetAutoClearTimer();
+            };
+            
+            confirmBtn.addEventListener('click', confirmHandler);
+            cancelBtn.addEventListener('click', cancelHandler);
+            
+            // 点击遮罩层关闭
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    overlay.remove();
+                    resetAutoClearTimer();
+                }
+            });
+            
+            // 回车确认
+            newKeyInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    confirmHandler();
+                }
+            });
+            
+            newKeyInput.focus();
+        }
+
+        // 加密解密核心功能
+        function initCryptoFeatures() {
+            const plainTextarea = document.getElementById('plainText');
+            const encryptBtn = document.getElementById('encryptBtn');
+            const decryptBtn = document.getElementById('decryptBtn');
+            const encryptedResult = document.getElementById('encryptedResult');
+            const decryptedResultDiv = document.getElementById('decryptedResult');
+            const copyEncryptedBtn = document.getElementById('copyEncrypted');
+            const clearDecryptOnlyBtn = document.getElementById('clearDecryptOnly');
+            const secretKeyBtn = document.getElementById('secretKeyBtn');
+            const cipherInput = document.getElementById('cipherInput');
+            const decryptKeyInput = document.getElementById('decryptKeyInput');
+            const encryptedTip = document.getElementById('encryptedTip');
+            const decryptedTip = document.getElementById('decryptedTip');
+            const decryptKeyTip = document.getElementById('decryptKeyTip');
+
+            function stringToUint8(str) { return new TextEncoder().encode(str); }
+            function uint8ToString(uint8Array) { return new TextDecoder().decode(uint8Array); }
+
+            async function deriveKeyFromPassword(password) {
+                const encoder = new TextEncoder();
+                const data = encoder.encode(password);
+                const hash = await crypto.subtle.digest('SHA-256', data);
+                return new Uint8Array(hash);
+            }
+
+            async function encryptMessage(plainText, password) {
+                if (!plainText || plainText.trim() === "") throw new Error("写点甜甜的文字吧~");
+                if (!password || password.trim() === "") throw new Error("密钥不能为空");
+                const rawKey = await deriveKeyFromPassword(password);
+                const cryptoKey = await crypto.subtle.importKey('raw', rawKey, { name: 'AES-GCM' }, false, ['encrypt']);
+                const iv = crypto.getRandomValues(new Uint8Array(12));
+                const plainData = stringToUint8(plainText);
+                const encrypted = await crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv, tagLength: 128 }, cryptoKey, plainData);
+                const combined = new Uint8Array(iv.length + encrypted.byteLength);
+                combined.set(iv, 0);
+                combined.set(new Uint8Array(encrypted), iv.length);
+                let binary = '';
+                for (let i = 0; i < combined.length; i++) binary += String.fromCharCode(combined[i]);
+                return btoa(binary);
+            }
+
+            async function decryptMessage(encryptedBase64, password) {
+                if (!encryptedBase64 || encryptedBase64.trim() === "") throw new Error("密文不能为空");
+                if (!password || password.trim() === "") throw new Error("密钥不能为空");
+                let binaryStr;
+                try { binaryStr = atob(encryptedBase64); } catch(e) { throw new Error("密文格式不对"); }
+                const combined = new Uint8Array(binaryStr.length);
+                for (let i = 0; i < binaryStr.length; i++) combined[i] = binaryStr.charCodeAt(i);
+                if (combined.length < 12) throw new Error("密文不完整");
+                const iv = combined.slice(0, 12);
+                const cipherWithTag = combined.slice(12);
+                const rawKey = await deriveKeyFromPassword(password);
+                const cryptoKey = await crypto.subtle.importKey('raw', rawKey, { name: 'AES-GCM' }, false, ['decrypt']);
+                try {
+                    const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: iv, tagLength: 128 }, cryptoKey, cipherWithTag);
+                    return uint8ToString(new Uint8Array(decrypted));
+                } catch (err) {
+                    throw new Error("密钥不对或密文已损坏，再试试你们的暗号吧💕");
+                }
+            }
+
+            // 加密功能（使用当前密钥，加密完成后自动重置为0221）
+            async function onEncrypt() {
+                const plain = plainTextarea.value;
+                encryptedResult.innerHTML = "💖 加密魔法施展中...";
+                try {
+                    // 使用当前的 encryptionKey 进行加密
+                    const encryptedBase64 = await encryptMessage(plain, encryptionKey);
+                    encryptedResult.innerHTML = encryptedBase64;
+                    showTip(encryptedTip, "加密成功！密文独一无二 ✨", false);
+                    
+                    // 加密完成后，自动将密钥重置为默认值 0221
+                    if (encryptionKey !== "0221") {
+                        encryptionKey = "0221";
+                        showTip(encryptedTip, "密钥已恢复默认 🔐", false);
+                    }
+                    
+                    resetAutoClearTimer();
+                } catch (err) {
+                    encryptedResult.innerHTML = "💔 加密失败";
+                    showTip(encryptedTip, err.message, true);
+                    resetAutoClearTimer();
+                }
+            }
+
+            // 解密功能（使用用户输入的密钥）
+            async function onDecrypt() {
+                const cipher = cipherInput.value;
+                const password = decryptKeyInput.value;
+                
+                if (!password || password.trim() === "") {
+                    showTip(decryptKeyTip, "请输入解密密钥", true);
+                    resetAutoClearTimer();
+                    return;
+                }
+                
+                decryptedResultDiv.innerHTML = "🕯️ 用心解读中...";
+                try {
+                    const plain = await decryptMessage(cipher, password);
+                    decryptedResultDiv.innerHTML = plain;
+                    showTip(decryptedTip, "解密成功，心意已送达 🌹", false);
+                    resetAutoClearTimer();
+                } catch (err) {
+                    decryptedResultDiv.innerHTML = "💔 解密失败";
+                    showTip(decryptedTip, err.message, true);
+                    resetAutoClearTimer();
+                }
+            }
+
+            // 复制并清空功能（针对加密选项卡）
+            async function copyAndClearEncrypt() {
+                const text = encryptedResult.innerText;
+                const invalidPlaceholders = ["💭 点击加密，生成专属密文", "💖 加密魔法施展中...", "💔 加密失败"];
+                
+                if (!text || invalidPlaceholders.includes(text.trim()) || text.includes("失败")) {
+                    showTip(encryptedTip, "没有可复制的内容呢", true);
+                    resetAutoClearTimer();
+                    return;
+                }
+                
+                try {
+                    await navigator.clipboard.writeText(text);
+                    showTip(encryptedTip, "密文已复制 💌，正在清空...", false);
+                    
+                    // 清空加密选项卡的所有内容
+                    setTimeout(() => {
+                        plainTextarea.value = '';
+                        encryptedResult.innerHTML = '💭 点击加密，生成专属密文';
+                        showTip(encryptedTip, "已清空所有内容 🧹", false);
+                        resetAutoClearTimer();
+                    }, 500);
+                } catch (err) {
+                    const textarea = document.createElement('textarea');
+                    textarea.value = text;
+                    textarea.style.position = 'fixed';
+                    textarea.style.opacity = '0';
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    const success = document.execCommand('copy');
+                    document.body.removeChild(textarea);
+                    if (success) {
+                        showTip(encryptedTip, "密文已复制 💌，正在清空...", false);
+                        setTimeout(() => {
+                            plainTextarea.value = '';
+                            encryptedResult.innerHTML = '💭 点击加密，生成专属密文';
+                            showTip(encryptedTip, "已清空所有内容 🧹", false);
+                            resetAutoClearTimer();
+                        }, 500);
+                    } else {
+                        showTip(encryptedTip, "复制失败", true);
+                        resetAutoClearTimer();
+                    }
+                }
+            }
+
+            // 只清空解密选项卡的内容（不复制）
+            function clearDecryptOnly() {
+                cipherInput.value = '';
+                decryptKeyInput.value = '';
+                decryptedResultDiv.innerHTML = '';
+                const decryptKeyTipDiv = document.getElementById('decryptKeyTip');
+                if (decryptKeyTipDiv) decryptKeyTipDiv.innerHTML = '';
+                showTip(decryptedTip, "已清空解密区所有内容 🧹", false);
+                resetAutoClearTimer();
+            }
+
+            encryptBtn.addEventListener('click', onEncrypt);
+            decryptBtn.addEventListener('click', onDecrypt);
+            copyEncryptedBtn.addEventListener('click', copyAndClearEncrypt);
+            clearDecryptOnlyBtn.addEventListener('click', clearDecryptOnly);
+            
+            // 隐藏按钮事件
+            if (secretKeyBtn) {
+                secretKeyBtn.addEventListener('click', showKeyDialog);
+            }
+            
+            // 初始提示
+            if (plainTextarea.value === "") {
+                plainTextarea.value = "";
+            }
+            
+            // 解密密钥输入框为空，无默认值
+            if (decryptKeyInput) {
+                decryptKeyInput.placeholder = "请输入密钥";
+                decryptKeyInput.value = "";
+            }
+            
+            // 设置活动监听器
+            setupActivityListeners();
+        }
+    })();
+</script>
+</body>
 </html>
