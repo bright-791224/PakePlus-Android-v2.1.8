@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>奉天承运</title>
+    <title>心动密语 | 浪漫加解密</title>
     <style>
         * {
             margin: 0;
@@ -170,14 +170,6 @@
             font-weight: 500;
             line-height: 1.3;
             border: 1px solid #ffcdd9;
-        }
-
-        .header-decoration {
-            display: flex;
-            justify-content: center;
-            gap: 8px;
-            margin-top: 8px;
-            font-size: 0.8rem;
         }
 
         /* 选项卡样式 */
@@ -715,14 +707,11 @@
         <div id="lockErrorMsg" class="error-msg"></div>
     </div>
 
-    <!-- 主内容区域（解锁后显示） -->
+    <!-- 主内容区域（默认隐藏） -->
     <div id="mainContent" class="main-content">
         <div class="romance-header">
-          
+            <h1>💖 心动密语 💕</h1>
             <div id="dynamicQuote" class="romance-quote">🌹 加载浪漫文案中... <span class="loading-quote"></span></div>
-            <div class="header-decoration">
-                <span>🌸</span> <span>✨</span> <span>💌</span>
-            </div>
         </div>
 
         <!-- 选项卡 -->
@@ -734,21 +723,21 @@
         <!-- 加密选项卡 -->
         <div id="encryptPane" class="tab-pane active">
             <div class="section-title">
-                💌 想说……
+                💌 想说的话……
                 <button id="secretKeyBtn" class="secret-btn" style="margin-left: auto;">🔑</button>
             </div>
-            <textarea id="plainText" placeholder="想说……"></textarea>
+            <textarea id="plainText" placeholder=""></textarea>
             
             <div class="flex-buttons">
-                <button id="encryptBtn" class="primary">✨ —>密语</button>
+                <button id="encryptBtn" class="primary">✨ 加密成密语</button>
             </div>
 
             <div>
                 <div class="result-header">
-                    
-                    <button id="copyEncrypted" class="copy-btn">📋 复制</button>
+                    <span>📜 密文 · 每次不同</span>
+                    <button id="copyEncrypted" class="copy-btn">📋 复制并清空</button>
                 </div>
-                <div id="encryptedResult" class="result-box"></div>
+                <div id="encryptedResult" class="result-box">💭 点击加密，生成专属密文</div>
                 <div id="encryptedTip" class="tip-container"></div>
             </div>
         </div>
@@ -756,9 +745,9 @@
         <!-- 解密选项卡 -->
         <div id="decryptPane" class="tab-pane">
             <div class="section-title">
-                🌹 解读
+                🌹 解读密语，还原真心
             </div>
-            <textarea id="cipherInput" placeholder="将收到的密文粘贴在这里..."></textarea>
+            <textarea id="cipherInput" placeholder="将收到的浪漫密文粘贴在这里..."></textarea>
             
             <div class="key-area">
                 <label class="key-label">🔑 输入解密密钥（与加密时一致）</label>
@@ -767,12 +756,12 @@
             </div>
             
             <div class="flex-buttons">
-                <button id="decryptBtn" class="primary">🌹 解密</button>
+                <button id="decryptBtn" class="primary">🌹 解密 · 读懂心意</button>
             </div>
 
             <div>
                 <div class="result-header">
-                    
+                    <span>💌 解密后的真心话</span>
                     <button id="clearDecryptOnly" class="clear-btn">🧹 清空</button>
                 </div>
                 <div id="decryptedResult" class="result-box"></div>
@@ -781,7 +770,7 @@
         </div>
 
         <footer>
-            <span>✨ 每次加密结果都不同 · 5秒无操作自动清空 ✨</span>
+            <span>✨ 每次加密结果都不同 离开页面需重新解锁 ✨</span>
         </footer>
     </div>
 </div>
@@ -793,6 +782,10 @@
         
         // 定时器变量
         let autoClearTimer = null;
+        let decryptClearTimer = null; // 专门用于解密结果延迟清空的定时器
+        
+        // 页面焦点状态
+        let isLocked = false;
         
         // ========== 生成当日密码（月日时，各2位）==========
         function getTodayPassword() {
@@ -812,17 +805,50 @@
         const unlockBtn = document.getElementById('unlockBtn');
         const lockErrorMsg = document.getElementById('lockErrorMsg');
 
+        // 锁定页面函数
+        function lockPage() {
+            if (isLocked) return;
+            isLocked = true;
+            
+            // 清空所有输入内容
+            const plainTextarea = document.getElementById('plainText');
+            const encryptedResult = document.getElementById('encryptedResult');
+            const cipherInput = document.getElementById('cipherInput');
+            const decryptKeyInput = document.getElementById('decryptKeyInput');
+            const decryptedResult = document.getElementById('decryptedResult');
+            
+            if (plainTextarea) plainTextarea.value = '';
+            if (encryptedResult) encryptedResult.innerHTML = '💭 点击加密，生成专属密文';
+            if (cipherInput) cipherInput.value = '';
+            if (decryptKeyInput) decryptKeyInput.value = '';
+            if (decryptedResult) decryptedResult.innerHTML = '💕 等待解密，让爱意浮现';
+            
+            // 清空提示
+            const encryptedTip = document.getElementById('encryptedTip');
+            const decryptedTip = document.getElementById('decryptedTip');
+            if (encryptedTip) encryptedTip.innerHTML = '';
+            if (decryptedTip) decryptedTip.innerHTML = '';
+            
+            // 显示锁屏界面，隐藏主内容
+            lockScreen.style.display = 'block';
+            mainContent.style.display = 'none';
+            
+            // 清空密码输入框
+            passwordInput.value = '';
+            lockErrorMsg.textContent = '';
+        }
+        
         // 解锁逻辑
         function unlock() {
             const entered = passwordInput.value.trim();
             if (entered === CORRECT_PASSWORD) {
+                isLocked = false;
                 lockScreen.style.display = 'none';
                 mainContent.style.display = 'block';
-                // 解锁后初始化浪漫文案和其他功能
+                // 解锁后重新初始化
                 initRomanticQuote();
                 initTabs();
                 initCryptoFeatures();
-                // 启动自动清空定时器
                 resetAutoClearTimer();
             } else {
                 lockErrorMsg.textContent = '密码错误，请输入正确的密码';
@@ -834,6 +860,21 @@
                     }
                 }, 2500);
             }
+        }
+
+        // 监听页面焦点变化
+        function setupVisibilityListener() {
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    // 页面失去焦点
+                    console.log('页面失去焦点');
+                } else {
+                    // 页面重新获得焦点，要求重新输入密码
+                    if (mainContent && mainContent.style.display === 'block') {
+                        lockPage();
+                    }
+                }
+            });
         }
 
         // 回车解锁
@@ -936,13 +977,12 @@
                         decryptPane.classList.add('active');
                         encryptPane.classList.remove('active');
                     }
-                    // 切换选项卡时重置定时器
                     resetAutoClearTimer();
                 });
             });
         }
 
-        // 清空两个选项卡的所有内容
+        // 清空两个选项卡的所有内容（自动清空用，后调用）
         function clearAllTabs() {
             const plainTextarea = document.getElementById('plainText');
             const encryptedResult = document.getElementById('encryptedResult');
@@ -950,16 +990,12 @@
             const decryptKeyInput = document.getElementById('decryptKeyInput');
             const decryptedResult = document.getElementById('decryptedResult');
             
-            // 清空加密选项卡
             if (plainTextarea) plainTextarea.value = '';
             if (encryptedResult) encryptedResult.innerHTML = '💭 点击加密，生成专属密文';
-            
-            // 清空解密选项卡
             if (cipherInput) cipherInput.value = '';
             if (decryptKeyInput) decryptKeyInput.value = '';
-            if (decryptedResult) decryptedResult.innerHTML = '';
+            if (decryptedResult) decryptedResult.innerHTML = '💕 等待解密，让爱意浮现';
             
-            // 清空提示信息
             const encryptedTip = document.getElementById('encryptedTip');
             const decryptedTip = document.getElementById('decryptedTip');
             const decryptKeyTip = document.getElementById('decryptKeyTip');
@@ -967,7 +1003,6 @@
             if (decryptedTip) decryptedTip.innerHTML = '';
             if (decryptKeyTip) decryptKeyTip.innerHTML = '';
             
-            // 显示清空提示
             const activePane = document.querySelector('.tab-pane.active');
             if (activePane && activePane.id === 'encryptPane') {
                 showTip(document.getElementById('encryptedTip'), "已自动清空所有内容 🧹", false);
@@ -976,14 +1011,14 @@
             }
         }
         
-        // 重置自动清空定时器
+        // 重置自动清空定时器（60秒）
         function resetAutoClearTimer() {
             if (autoClearTimer) {
                 clearTimeout(autoClearTimer);
             }
             autoClearTimer = setTimeout(() => {
                 clearAllTabs();
-            }, 5000); // 5秒后自动清空
+            }, 60000);
         }
         
         // 监听用户活动，重置定时器
@@ -994,7 +1029,6 @@
                 element.addEventListener('input', resetAutoClearTimer);
                 element.addEventListener('focus', resetAutoClearTimer);
             });
-            // 监听整个主内容区域的点击
             const mainContentDiv = document.getElementById('mainContent');
             if (mainContentDiv) {
                 mainContentDiv.addEventListener('click', resetAutoClearTimer);
@@ -1015,11 +1049,9 @@
         
         // 显示密钥设置弹窗
         function showKeyDialog() {
-            // 创建遮罩层
             const overlay = document.createElement('div');
             overlay.className = 'key-dialog-overlay';
             
-            // 创建弹窗
             const dialog = document.createElement('div');
             dialog.className = 'key-dialog';
             dialog.innerHTML = `
@@ -1035,12 +1067,10 @@
             overlay.appendChild(dialog);
             document.body.appendChild(overlay);
             
-            // 获取输入框
             const newKeyInput = document.getElementById('newKeyInput');
             const confirmBtn = document.getElementById('confirmKeyBtn');
             const cancelBtn = document.getElementById('cancelKeyBtn');
             
-            // 确认按钮事件
             const confirmHandler = () => {
                 let newKey = newKeyInput.value.trim();
                 if (newKey === "") {
@@ -1054,7 +1084,6 @@
                 resetAutoClearTimer();
             };
             
-            // 取消按钮事件
             const cancelHandler = () => {
                 overlay.remove();
                 resetAutoClearTimer();
@@ -1062,22 +1091,15 @@
             
             confirmBtn.addEventListener('click', confirmHandler);
             cancelBtn.addEventListener('click', cancelHandler);
-            
-            // 点击遮罩层关闭
             overlay.addEventListener('click', (e) => {
                 if (e.target === overlay) {
                     overlay.remove();
                     resetAutoClearTimer();
                 }
             });
-            
-            // 回车确认
             newKeyInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    confirmHandler();
-                }
+                if (e.key === 'Enter') confirmHandler();
             });
-            
             newKeyInput.focus();
         }
 
@@ -1143,22 +1165,18 @@
                 }
             }
 
-            // 加密功能（使用当前密钥，加密完成后自动重置为0221）
             async function onEncrypt() {
                 const plain = plainTextarea.value;
                 encryptedResult.innerHTML = "💖 加密魔法施展中...";
                 try {
-                    // 使用当前的 encryptionKey 进行加密
                     const encryptedBase64 = await encryptMessage(plain, encryptionKey);
                     encryptedResult.innerHTML = encryptedBase64;
                     showTip(encryptedTip, "加密成功！密文独一无二 ✨", false);
                     
-                    // 加密完成后，自动将密钥重置为默认值 0221
                     if (encryptionKey !== "0221") {
                         encryptionKey = "0221";
                         showTip(encryptedTip, "密钥已恢复默认 🔐", false);
                     }
-                    
                     resetAutoClearTimer();
                 } catch (err) {
                     encryptedResult.innerHTML = "💔 加密失败";
@@ -1167,7 +1185,7 @@
                 }
             }
 
-            // 解密功能（使用用户输入的密钥）
+            // 解密功能（解密后延迟10秒清空密钥和解密结果）
             async function onDecrypt() {
                 const cipher = cipherInput.value;
                 const password = decryptKeyInput.value;
@@ -1183,15 +1201,37 @@
                     const plain = await decryptMessage(cipher, password);
                     decryptedResultDiv.innerHTML = plain;
                     showTip(decryptedTip, "解密成功，心意已送达 🌹", false);
+                    
+                    // 清除之前的延迟清空定时器
+                    if (decryptClearTimer) {
+                        clearTimeout(decryptClearTimer);
+                    }
+                    // 10秒后清空密钥输入框和解密结果框
+                    decryptClearTimer = setTimeout(() => {
+                        decryptKeyInput.value = '';
+                        decryptedResultDiv.innerHTML = '💕 等待解密，让爱意浮现';
+                        showTip(decryptedTip, "已清空密钥和解密结果 🧹", false);
+                        decryptClearTimer = null;
+                    }, 10000); // 10秒
+                    
                     resetAutoClearTimer();
                 } catch (err) {
                     decryptedResultDiv.innerHTML = "💔 解密失败";
                     showTip(decryptedTip, err.message, true);
+                    
+                    if (decryptClearTimer) {
+                        clearTimeout(decryptClearTimer);
+                    }
+                    decryptClearTimer = setTimeout(() => {
+                        decryptKeyInput.value = '';
+                        decryptedResultDiv.innerHTML = '💕 等待解密，让爱意浮现';
+                        decryptClearTimer = null;
+                    }, 10000);
+                    
                     resetAutoClearTimer();
                 }
             }
 
-            // 复制并清空功能（针对加密选项卡）
             async function copyAndClearEncrypt() {
                 const text = encryptedResult.innerText;
                 const invalidPlaceholders = ["💭 点击加密，生成专属密文", "💖 加密魔法施展中...", "💔 加密失败"];
@@ -1206,7 +1246,6 @@
                     await navigator.clipboard.writeText(text);
                     showTip(encryptedTip, "密文已复制 💌，正在清空...", false);
                     
-                    // 清空加密选项卡的所有内容
                     setTimeout(() => {
                         plainTextarea.value = '';
                         encryptedResult.innerHTML = '💭 点击加密，生成专属密文';
@@ -1237,11 +1276,14 @@
                 }
             }
 
-            // 只清空解密选项卡的内容（不复制）
             function clearDecryptOnly() {
+                if (decryptClearTimer) {
+                    clearTimeout(decryptClearTimer);
+                    decryptClearTimer = null;
+                }
                 cipherInput.value = '';
                 decryptKeyInput.value = '';
-                decryptedResultDiv.innerHTML = '';
+                decryptedResultDiv.innerHTML = '💕 等待解密，让爱意浮现';
                 const decryptKeyTipDiv = document.getElementById('decryptKeyTip');
                 if (decryptKeyTipDiv) decryptKeyTipDiv.innerHTML = '';
                 showTip(decryptedTip, "已清空解密区所有内容 🧹", false);
@@ -1253,24 +1295,20 @@
             copyEncryptedBtn.addEventListener('click', copyAndClearEncrypt);
             clearDecryptOnlyBtn.addEventListener('click', clearDecryptOnly);
             
-            // 隐藏按钮事件
             if (secretKeyBtn) {
                 secretKeyBtn.addEventListener('click', showKeyDialog);
             }
             
-            // 初始提示
-            if (plainTextarea.value === "") {
-                plainTextarea.value = "";
-            }
+            // 不再设置默认句子，保持文本框为空
+            // 文本框默认就是空的
             
-            // 解密密钥输入框为空，无默认值
             if (decryptKeyInput) {
                 decryptKeyInput.placeholder = "请输入密钥";
                 decryptKeyInput.value = "";
             }
             
-            // 设置活动监听器
             setupActivityListeners();
+            setupVisibilityListener();
         }
     })();
 </script>
